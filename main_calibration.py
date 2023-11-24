@@ -57,7 +57,7 @@ def custom_pearson(y, y_pred, **kwargs):
 
 class myCalibrationModel:
     def __init__(self, myDataObject, reference:str, mp10=False):
-        self._save = False
+        self._save = True
         self._train, self._test = split_data(myDataObject._allData, test_size=0.3, random_state=100, shuffle=True)
         self._data = myDataObject._allData
 
@@ -69,11 +69,11 @@ class myCalibrationModel:
         # self._data[toScale] = StandardScaler().fit_transform(self._data[toScale])
         # self._timeCV = TimeSeriesSplit(n_splits=5, max_train_size=168, test_size=168)
         # self._timeCV = TimeSeriesSplit(n_splits=5, max_train_size=72, test_size=24)
-        self._timeCV = 3 # CV random 
+        self._timeCV = 10 # CV random 
         self._reference = reference
         self._debug = False
         self._mp10 = mp10
-        self._n_iter = 5
+        self._n_iter = 300
         sensor_list = []
         self._rawData = []
         self.metrics = ["R2", "PearsonR", "SpearmanR", "MAE", "MSE", "Bias", "StdDev"]
@@ -138,16 +138,19 @@ class myCalibrationModel:
 
                 if os.path.isfile("lcs/aires/finalized/"+sensor+" "+self._reference+"/"+model_name+".joblib"):
                     print("Found model "+model_name+" for "+sensor)
-                    model = joblib.load("lcs/aires/finalized/"+sensor+" "+self._reference+"/"+model_name+".joblib")
-                    self._myParams[sensor][model_name] = model.get_params()
+                    aux = joblib.load("lcs/aires/finalized/"+sensor+" "+self._reference+"/"+model_name+".joblib")
+                    model.set_params(**aux.get_params(False))
+                    self._myParams[sensor][model_name] = aux.get_params()
+                    model.fit(self._train[[sensor, "Temperatura", "Umidade"]].values, self._train[self._reference].values)
                 else:
                     if(model_name == "Multiple Linear"):
                         model.fit(self._train[[sensor, "Temperatura", "Umidade"]].values, self._train[self._reference].values)
                     else:
-                        random_model = RandomizedSearchCV(model, self._myParams[sensor][model_name], n_iter=self._n_iter, cv=self._timeCV, verbose=0, n_jobs=6, random_state=0)
+                        random_model = RandomizedSearchCV(model, self._myParams[sensor][model_name], n_iter=self._n_iter, cv=self._timeCV, verbose=0, n_jobs=-1, random_state=0)
                         random_model.fit(self._train[[sensor, "Temperatura", "Umidade"]].values, self._train[self._reference].values)
                         model = random_model.best_estimator_
                         self._myParams[sensor][model_name] = random_model.best_params_
+                        print(random_model.best_params_)
 
                 predict = model.predict(self._train[[sensor, "Temperatura", "Umidade"]].values)
                 self.calcStats(self._results[sensor]["TREINO"][model_name], sensor, predict, self._train[self._reference])
@@ -452,9 +455,79 @@ class myCalibrationModel:
                 
 
 if __name__ == "__main__":
-    # testData = myData([], yt=False)
-    testData = myData(["SDS011"], "PDR", True)
-    testCalib25 = myCalibrationModel(testData, "MP10 PDR", True)
-    # testCalib10 = myCalibrationModel(testData, "MP10 BAM", mp10=True)
-    plt.show()
+    # testData = myData(["SDS011a"], "BAM", False)
+    # testCalib10 = myCalibrationModel(testData, "MP2.5 BAM", False)
+
+    # testData = myData(["SDS011b"], "BAM", False)
+    # testCalib10 = myCalibrationModel(testData, "MP2.5 BAM", False)
+
+    # testData = myData(["SDS018"], "BAM", False)
+    # testCalib10 = myCalibrationModel(testData, "MP2.5 BAM", False)
+
+    # testData = myData(["HPMAa"], "BAM", False)
+    # testCalib10 = myCalibrationModel(testData, "MP2.5 BAM", False)
+
+    # testData = myData(["HPMAb"], "BAM", False)
+    # testCalib10 = myCalibrationModel(testData, "MP2.5 BAM", False)
+
+    # testData = myData(["PMS7003a"], "BAM", False)
+    # testCalib10 = myCalibrationModel(testData, "MP2.5 BAM", False)
+
+    # testData = myData(["PMS7003b"], "BAM", False)
+    # testCalib10 = myCalibrationModel(testData, "MP2.5 BAM", False)
+
+
+
+    # testData = myData(["SDS011a"], "BAM", False)
+    # testCalib10 = myCalibrationModel(testData, "MP10 BAM", True)
+
+    # testData = myData(["SDS011b"], "BAM", False)
+    # testCalib10 = myCalibrationModel(testData, "MP10 BAM", True)
+
+    # testData = myData(["SDS018"], "BAM", False)
+    # testCalib10 = myCalibrationModel(testData, "MP10 BAM", True)
+
+    # testData = myData(["HPMAa"], "BAM", False)
+    # testCalib10 = myCalibrationModel(testData, "MP10 BAM", True)
+
+    # testData = myData(["HPMAb"], "BAM", False)
+    # testCalib10 = myCalibrationModel(testData, "MP10 BAM", True)
+
+    # testData = myData(["PMS7003a"], "BAM", False)
+    # testCalib10 = myCalibrationModel(testData, "MP10 BAM", True)
+
+    # testData = myData(["PMS7003b"], "BAM", False)
+    # testCalib10 = myCalibrationModel(testData, "MP10 BAM", True)
+
+    # testData = myData(["SDS011"], "PDR", True)
+    # testCalib10 = myCalibrationModel(testData, "MP10 PDR", True)
+
+    # testData = myData(["SDS018"], "PDR", True)
+    # testCalib10 = myCalibrationModel(testData, "MP10 PDR", True)
+
+    # testData = myData(["HPMA"], "PDR", True)
+    # testCalib10 = myCalibrationModel(testData, "MP10 PDR", True)
+
+    # testData = myData(["PMS7003"], "PDR", True)
+    # testCalib10 = myCalibrationModel(testData, "MP10 PDR", True)
+
+    # testData = myData(["MIX6070"], "PDR", True)
+    # testCalib10 = myCalibrationModel(testData, "MP10 PDR", True)
+
+    testData = myData(["SDS011"], "TEOM", True)
+    testCalib10 = myCalibrationModel(testData, "MP10 TEOM", True)
+
+    testData = myData(["SDS018"], "TEOM", True)
+    testCalib10 = myCalibrationModel(testData, "MP10 TEOM", True)
+
+    testData = myData(["HPMA"], "TEOM", True)
+    testCalib10 = myCalibrationModel(testData, "MP10 TEOM", True)
+
+    testData = myData(["PMS7003"], "TEOM", True)
+    testCalib10 = myCalibrationModel(testData, "MP10 TEOM", True)
+
+    testData = myData(["MIX6070"], "TEOM", True)
+    testCalib10 = myCalibrationModel(testData, "MP10 TEOM", True)
+
+    # plt.show()
 
