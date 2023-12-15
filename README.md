@@ -9,3 +9,6 @@ model_config.py ----> arquivo de configuração dos modelos de AM a serem utiliz
 ESTACAO_MP ----> Código do DustAI
 
 [Kibana](https://sentilo.td.utfpr.edu.br/kibana/app/dashboards#/view/ae676ab0-5e03-11ee-a8d5-874f32129c8c?_g=())
+
+Usuário: visualizer
+Senha: visualizer
